@@ -1,0 +1,22 @@
+funkintro={4/4;Tempo=110;
+bd 1/8 |d...|1/16 |.| 1/8|X..|;
+sn 1/16 |...| 1/8 |dX..X|;
+cymc 1/1 |X|;}
+  
+funk={4/4;Tempo=110;
+bd 1/8 |d...|1/16 |.| 1/8 |X..|;
+sn 1/16 |...| 1/8 |dX..X|;}
+  
+funkr=funkintro+funk*3
+  
+plates={4/4;Tempo=110;
+hh 1/8 |XXXXXXXX|;}
+
+platesa={4/4;Tempo=110; #note that patterns cannot have numbers in their name
+hh 1/8 |XX|1/16|XXXX|1/8|XXXX|;}
+  
+cym={4/4;Tempo=110;cymc 1/1 |X|;}
+  
+res=funkr||(plates+platesa)*2 + cym
+  
+export(res)

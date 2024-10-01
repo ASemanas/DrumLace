@@ -1,0 +1,1677 @@
+% Feta (not the Font-En-Tja) music font --  bold Orator numerals
+% This file is part of LilyPond, the GNU music typesetter.
+%
+% Copyright (C) 1997--2022 Jan Nieuwenhuizen <janneke@gnu.org>
+%
+% The LilyPond font is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version, or under the SIL Open Font License.
+%
+% LilyPond is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
+
+
+height# := number_design_size;
+space# := number_design_size / 2;
+
+%
+% DOCME!
+%
+% ugh. b and h are reused.
+%
+
+save b, h;
+4 h + b = 1.15;
+10 h + b = 1;
+fatten := number_design_size * h + b;
+
+save b, h;
+4 h + b = 1.05;
+10 h + b = 1;
+widen := number_design_size * h + b;
+
+tense = 0.85;
+thick# := 7/30 height# * fatten;
+thin# := thick# / 4 * fatten + max (.1 (height# / 10 - 1), 0);
+
+%% sqrt (.8 * blot_diameter# * thin#);
+hair# := thin# * .8;
+
+flare# := 9/8 thick# + .75 (height# / 10 - 1);
+
+save b, h;
+4h + b = 1/8;
+10h + b = 1/6;
+kuulleke# := thick# * number_design_size * h + b;
+foot_top# := thick#;
+foot_width# := 9/4 thick#;
+
+
+%
+% These numbers were taken from a part that the EJE violas played in
+% 1997 -- Probably Mendelssohn's ouverture `Heimkehr aus der Fremde'.
+%
+
+
+%
+% TODO all the invocation of flare_path are weird --
+% the horizontal tangents should be more at the center of the
+% glyph.
+%
+
+define_whole_vertical_pixels (height);
+define_whole_pixels (thick, thin, hair);
+define_pixels (flare);
+define_pixels (foot_top, foot_width);
+define_pixels (kuulleke);
+
+
+%
+% Yet Another Bulb Routine with smooth inside curve.
+%
+% alpha = start direction.
+% beta = which side to turn to
+% flare = diameter of the bulb
+% line = diameter of line attachment
+% direction = is ink on left or right side (1 or -1)
+%
+%
+% move_away_to = amount left (for 2)
+% turn_to = amount down (for 2)
+%
+
+def number_flare_path (expr pos, alpha, beta, line, flare,
+                            move_away_to, turn_to, taille, taille_ratio,
+                            direction) =
+  begingroup;
+    save res;
+    path res;
+
+    clearxy;
+
+    % z5 = z2 + 0.43 * flare * dir (alpha - 1.5 beta);
+
+    z4 = (0.75 - taille) [z2r, z2l] + whatever * dir (alpha - beta);
+    z4 = (taille_ratio * taille) [z3l, z3r] + whatever * dir (alpha);
+
+    z1r = pos;
+    z2r = z1r + move_away_to * dir (alpha)
+          + (line + turn_to) * dir (alpha + beta);
+    z3r = 0.5 [z2l, z2r] + 0.5 * flare * dir (alpha + beta);
+
+    penpos1 (line, 180 + beta + alpha);
+    penpos2 (flare, alpha);
+    penpos3 (flare, alpha + beta);
+
+    penlabels (1, 2, 3, 4, 5);
+
+    res := z1r{dir (alpha)}
+           .. z2r{dir (180 + alpha - beta)}
+           .. z3r{dir (alpha + 180)}
+           .. z2l{dir (alpha - beta)}
+
+    %%% Two versions of the curve: one with z4, the other with z5.
+    %       .. z5{dir (alpha - beta / 2)}
+
+           .. z4{dir (180 + alpha + beta)}
+           .. z1l{dir (alpha + 180)};
+
+    % pickup pencircle;
+    % draw res;
+
+    if direction <> 1:
+      res := reverse res;
+    fi;
+
+    res
+  endgroup
+enddef;
+
+
+def calc_kuulleke (expr w, alpha) =
+  begingroup;
+    save beta, gamma;
+
+    beta = (alpha - 90) / 2;
+    gamma = (90 + alpha) / 2;
+    if (gamma < 0):
+      gamma := gamma + 180;
+    fi;
+
+    penpos1 (w / cosd (alpha), alpha);
+    penpos2 (hair, 90 + beta);
+    penpos3 (hair, gamma - 90);
+
+    z2 = z1l + (1/2 hair / tand ((alpha + 90) / 2)) * dir (beta);
+    z3 = z1r - (1/2 hair / tand ((90 - alpha) / 2)) * dir (gamma);
+    z4 = z1 + kuulleke * dir (alpha - 90);
+  endgroup;
+enddef;
+
+
+% should make generic macro?
+%
+def draw_foot (expr xpos) =
+  begingroup;
+    clearxy;
+
+    penpos1 (thick, 0);
+    penpos2 (foot_width, 0);
+    penpos3 (hair, -90);
+    penpos4 (hair, 90);
+
+    z1 = (xpos, foot_top);
+    z2 = (x1, 0);
+    z3r = z2r;
+    z4l = z2l;
+    z5 = (x1, kuulleke);
+
+    penlabels (1, 2, 3, 4);
+
+    fill z1
+         .. {right}z1r{down}
+         .. {right}z3l
+         .. z3r{left}
+         .. z5
+         .. {left}z4l
+         .. z4r{right}
+         .. {up}z1l{right}
+         .. z1
+         .. cycle;
+  endgroup;
+enddef;
+
+
+def draw_zero (expr advance_width, glyph_width, left_bearing) =
+  save gw, lb;
+
+  set_char_box (0, advance_width, 0, height#);
+
+  gw := hround_pixels (glyph_width);
+  lb := hround_pixels (left_bearing);
+
+  penpos1 (thin, 90);
+  penpos2 (thick, 180);
+  penpos3 (thin,- 90);
+  penpos4 (thick, 0);
+
+  z1r = (lb + gw / 2, h);
+  z2r = (lb, h / 2);
+  z3r = (lb + gw / 2, 0);
+  z4r = (lb + gw, h / 2);
+
+  fill z1r
+       .. z2r
+       .. z3r
+       .. z4r
+       .. cycle;
+
+  save t;
+  t = 1 / tense;
+
+  penlabels (1, 2, 3, 4);
+
+  unfill z1l
+         ..tension t.. z2l
+         ..tension t.. z3l
+         ..tension t.. z4l
+         ..tension t.. cycle;
+enddef;
+
+
+def draw_one (expr advance_width, left_bearing) =
+  save lb;
+  save alpha, beta, gamma;
+
+  % set_char_box (0, 19/30 height# * widen, 0, height#);
+  set_char_box (0, advance_width, 0, height#);
+
+  lb := hround_pixels (left_bearing);
+
+  alpha = 0;
+  calc_kuulleke (thick, alpha);
+  z1 = (lb + 3/2 thick, height);
+
+  penpos5 (thick, 0);
+  z5 = (x1, foot_top);
+
+  z6 = (lb, h / 2);
+  beta = angle (z1l - z6);
+
+  penpos7 (thin, beta - 90);
+  z7l = z6;
+
+  penpos8 (thin / cosd (beta), -90);
+  z8l = z1l;
+
+  penpos9 (thin, beta - 90);
+  z9r = z8r + (thin / cosd (beta)) * down;
+
+  penlabels (range 1 thru 9);
+
+  gamma = angle (length (z1r - z1), 2 kuulleke);
+
+  fill z2r{dir (alpha - gamma)}
+       .. z4
+       .. {dir (alpha + gamma)}z3l
+       .. z3r{down}
+       -- z5r
+       -- z5l
+       -- z2l{up}
+       .. cycle;
+
+  fill z7l
+       -- z1l{dir (beta)}
+       .. {dir (alpha - gamma)}z2r
+       -- z9r{up}
+       .. {dir (180 + beta)}z9l
+       -- z7r{dir (180 + beta)}
+       .. {dir (beta)}cycle;
+
+  draw_foot (x1);
+enddef;
+
+
+def draw_two (expr advance_width, glyph_width, left_bearing, plus) =
+  save gw, lb;
+
+  save tolerance;
+  save alpha, beta, gamma, theta;
+  save t, pata, ta, patb, tb, bow;
+
+  path pata, patb, bow;
+  numeric ta, tb;
+
+  if plus:
+    set_char_box (0,
+                  left_bearing + 0.95 glyph_width % x2'r
+                    + plus_size# + 0.5 thin#,
+                  1/2 plus_size# - 3/4 thin#, height#);
+  else:
+    set_char_box (0, advance_width, 0, height#);
+  fi;
+
+  gw := hround_pixels (glyph_width);
+  lb := hround_pixels (left_bearing);
+
+  alpha = -45 * widen;
+  beta = 85;
+  gamma = beta - 10;
+  theta = 20 / widen;
+
+  penpos1 (hair, 90 + beta);
+  z1 = (lb, 0) + (1/2 sqrt (2) * hair) * dir (45);
+
+  penpos3 (hair, 90 + gamma);
+  z3 = (lb + gw, thick) + (1/2 sqrt (2) * hair) * dir (-135);
+
+  penpos2 (thick, 90 + alpha - 15);
+  x2 - x1 = x3 - x2;
+  y2 = 10/16 thick / widen;
+
+  penpos4 (thick, 0);
+  z4r = (lb + 0.95 gw, .71 h);
+
+  penpos5 (hair, 90);
+  y5r = h;
+  x5r = lb + 9/20 gw;
+
+  tolerance := epsilon;
+
+  % Find proper tension to exactly touch the x axis.
+  % Later on we directly use `bow'.
+  vardef f (expr t) =
+    bow := z3l{dir (180 + gamma)}
+           ..tension t.. {dir (180 + alpha - 5)}z2l;
+    ypart (directionpoint left of bow) < 0
+  enddef;
+
+  % the return value of `solve' is stored in a dummy variable
+  t = solve f (0.8, 1.2);
+
+  if plus:
+    z10 = directionpoint left of bow;
+
+    penpos2' (thin, 90);
+    penpos3' (thin, 90);
+    z2'l = (x4r, 3/4 thin);
+    z3'l = (x2'l + plus_size, 3/4 thin);
+
+    pata := subpath (0.1, 8) of z1r{dir (beta)}
+            ..tension 0.9.. {dir (alpha + 10)}z2r
+            .. z2'r{right}
+            -- z3'r{right}
+            .. z3'l{left}
+            -- z2'l{left}
+            ..tension 0.8.. z10{left}
+            .. {dir (180 + alpha - 5)}z2l
+            .. {dir (180 + beta)}z1l;
+
+    z11 = (hround (0.5 [x2'r, x3'r]), vround (y3' - plus_size / 2));
+    z12 = (x11, vround (y11 + plus_size));
+
+    pickup pencircle scaled thin;
+    draw_gridline (z11, z12, thin);
+  else:
+    pata := subpath (0.1, 5) of z1r{dir (beta)}
+            ..tension 0.9.. {dir (alpha + 10)}z2r
+            .. {dir (gamma)}z3r
+            .. bow
+            .. {dir (180 + beta)}z1l;
+  fi;
+
+  penlabels (range 1 thru 5, 2', 3');
+  labels (10, 11, 12);
+
+  t := tense;
+
+  patb := z1l{dir (beta)}
+          ..tension t.. z4r{up}
+          .. number_flare_path (z5r, 180, 90, hair, 1.05 flare,
+                                0.92 x5r - lb, .21 h, 0.006, 0.4, 1)
+          .. z4l{down}
+          ..tension t.. {dir (180 + beta)}z1r;
+
+  (ta, tb) = pata intersectiontimes patb;
+
+  fill subpath (ta, length pata) of pata
+       .. reverse subpath (tb, length patb) of patb
+       -- cycle;
+enddef;
+
+
+%%
+% TODO: should widen a bit.  The right edge of the 3 bumps into next glyph in
+% combinations
+%
+def draw_three (expr advance_width, glyph_width, left_bearing) =
+  save gw, lb;
+
+  set_char_box (0, advance_width, 0, height#);
+
+  gw := hround_pixels (glyph_width);
+  lb := hround_pixels (left_bearing);
+
+  penpos1 (hair, -90);
+  x1l = lb + 36/80 gw;
+  y1l = h;
+
+% z1l = (17/16 thick, h);
+
+  penpos2 (7/8 thick, 180);
+  x2l = lb + gw - thick / 8;
+  y2l = 3/4 h + thick * 3/32;
+
+  penpos3 (thin, 90);
+  z3 = (lb + gw / 2, h / 2 + 1/8 thick);
+
+  penpos4 (thin, 90);
+  z4 = (lb + 5/8 thick + 1/2 thin, y3);
+
+  penpos5 (thick, 0);
+  x5r = lb + gw;
+  y5r = 17/64 h + thick / 16;
+
+  penpos6 (hair, -90);
+  x6r = lb + 37/80 gw;
+  y6r = 0;
+
+  penpos7 (3/2 thin, 90);
+  x7 = lb + .83 gw;
+  y7 = y3;
+
+  penlabels (range 1 thru 7);
+
+  save alpha, t, outer_t;
+  alpha = 25;
+  t = tense;
+  outer_t := 0.93;
+
+% pickup pencircle scaled 1;
+% draw
+  fill number_flare_path (z1l, 180, 90, hair, 7/8 flare,
+                          0.91 x1l - lb, .16 h, 0.06, 1.5, -1)
+       ..tension outer_t.. z2l{down}
+       ..tension outer_t.. z7r{dir (180 + alpha)}
+       .. z7l{dir (-alpha)}
+       ..tension outer_t.. z5r{down}
+       ..tension outer_t.. number_flare_path (z6r, 180, -90, hair, flare,
+                                              x6l - lb, .18 h, 0.06, 1.5, 1)
+       .. z5l{up}
+       ..tension t.. z3l{left}
+       .. z4l{left}
+       .. z4r{right}
+       .. z3r{right}
+       ..tension t.. z2r{up}
+       ..tension t.. cycle;
+enddef;
+
+
+def draw_four (expr advance_width, glyph_width, left_bearing,
+                    short_stem, plus) =
+  save gw, lb;
+  save alpha, beta, gamma;
+
+  if plus:
+    set_char_box (0, left_bearing + glyph_width + plus_size#,
+                  0, height#);
+  else:
+    set_char_box (0, advance_width, 0, height#);
+  fi;
+
+  gw := hround_pixels (glyph_width);
+  lb := hround_pixels (left_bearing);
+
+  alpha = 0;
+  calc_kuulleke (3/2 thick, alpha);
+
+  z1r = (lb + gw - 3/4 thick, height);
+  z5 = (lb + thin, 1/4 height + thin);
+
+  beta = angle (z3r - z5);
+
+  penpos6 (thin, -90);
+  z6l = z5;
+
+  penpos7 (thin, -90);
+  y7 = y6;
+  if plus:
+    x7 = lb + gw - 1/2 thin + plus_size;
+
+    z11 = (hround (x7 - plus_size / 2), vround (y7 - plus_size / 2));
+    z12 = (x11, vround (y11 + plus_size));
+
+    pickup pencircle scaled thin;
+    draw_gridline (z11, z12, thin);
+  else:
+    x7 = lb + gw - 1/2 thin;
+  fi;
+
+  penpos8 (thin, -alpha);
+  z8r = z5;
+
+  penlabels (range 1 thru 12);
+
+  gamma = angle (length (z1r - z1), 2 kuulleke);
+
+  fill z2r{dir (alpha - gamma)}
+       .. z4
+       .. {dir (alpha + gamma)}z3l
+       .. {dir (180 + beta)}z3r
+       -- z8r
+       -- z7l{right}
+       .. {left}z7r
+       -- z6r{left}
+       ..tension 0.8 and 2.. z8l{dir (beta)}
+       .. {up}z2l
+       .. cycle;
+
+  clearxy;
+
+  alpha := beta;
+  calc_kuulleke (thick, alpha);
+
+  x1r = lb + gw - 3/4 thick;
+  if short_stem:
+    % We want this:
+    %
+    %   y1r = y5 + 1/2 thin + thick * tand (alpha);
+    %
+    % (i.e., `y1l`, specified indirectly via `y1r`, should be
+    % positioned `1/2 thin` higher than `y5`).  However,
+    % `calc_kuulleke` needs 'absolute' coordinates not based on a
+    % system of equations.
+    y1r = (1/4 height + thin) + 1/2 thin + thick * tand (alpha);
+  else:
+    y1r = height - (3/2 thin) / cosd (alpha);
+  fi;
+
+  penpos5 (thick, 0);
+  z5 = (x1, foot_top);
+
+  gamma := angle (length (z1r - z1), 2 kuulleke);
+
+  fill z2r{dir (alpha - gamma)}
+       .. z4
+       .. {dir (alpha + gamma)}z3l
+       .. {down}z3r
+       -- z5r
+       -- z5l
+       -- z2l{up}
+       .. cycle;
+
+  penlabels (1, 2, 3, 4, 5);
+  labels (11, 12);
+
+  draw_foot (x5);
+enddef;
+
+
+def draw_five (expr advance_width, glyph_width, left_bearing, plus) =
+  save gw, lb;
+  save alpha, beta, gamma, delta;
+  save poi; % point of interest
+  save inner_t, outer_t;
+  save pat;
+  path pat;
+
+  if plus:
+    set_char_box (0,
+                  left_bearing + 0.95 glyph_width + 1/8 thick# % x1r
+                    + plus_size# + 0.5 thin#,
+                  0,
+                  height# + 1/2 plus_size#);
+  else:
+    set_char_box (0, advance_width, 0, height#);
+  fi;
+
+  gw := hround_pixels (glyph_width);
+  lb := hround_pixels (left_bearing);
+
+  alpha = 0;
+  calc_kuulleke (0.9 gw, alpha);
+
+  z1 = (lb + gw / 2 + 1/8 thick, height);
+
+  penpos5 (thin, 0);
+  z5l = (x1l, height - 15/16 thick);
+
+  penpos6 (hair, 90 - 45);
+  z6 = z5r + 1/2 hair * dir (-45);
+
+  penpos7 (thin, 0);
+  z7l = (x1l, height / 2 + thin - hair);
+
+  penlabels (range 1 thru 7);
+
+  gamma = angle (length (z1r - z1), 2 kuulleke);
+
+  if plus:
+    z1'r = (x1r, y1r - thin);
+
+    penpos20 (thin, 90);
+    z20r = (x1r + plus_size, y1r);
+
+    z21 = (hround (0.5 [x1r, x20r]), vround (y20 - plus_size / 2));
+    z22 = (x21, vround (y21 + plus_size));
+
+    penlabels (20);
+    labels (1'r, 21, 22);
+
+    pickup pencircle scaled thin;
+    draw_gridline (z21, z22, thin);
+
+    pat := z2r{dir (alpha - gamma)}
+           .. z4
+           .. {dir (alpha + gamma)}z3l
+           .. {right}z1r
+           -- z20r{right}
+           .. z20l{left}
+           -- z1'r{left}
+           ..tension 1.5 and 0.8.. {left}z6r
+           .. {down}z6l
+           -- z7r{down}
+           .. {up}z7l
+           -- z2l{up}
+           .. cycle;
+    poi := 9;
+  else:
+    pat := z2r{dir (alpha - gamma)}
+           .. z4
+           .. {dir (alpha + gamma)}z3l
+           .. z3r{dir (-135)}
+           .. {left}z6r
+           .. {down}z6l
+           -- z7r{down}
+           .. {up}z7l
+           -- z2l{up}
+           .. cycle;
+    poi := 6;
+  fi;
+
+  beta = 45;
+  delta = 180 + beta + 10;
+  z8r = (x7r, y7r - 1/16 thick + thin);
+  z8l = directionpoint dir (delta) of subpath (poi, poi + 1) of pat;
+
+  % include intersection point to improve overlap removal
+  fill subpath (0, poi) of pat
+       .. z8l
+       .. subpath (poi + 1, length (pat)) of pat
+       .. cycle;
+
+  penpos9 (thin, 90);
+  x9 = .36 [x8r, x10r];
+  y9 = 10/16 [y5, y7];
+
+  penpos10 (thick, 0);
+  x10r = lb + gw + hair / 2;
+  y10r = 1/2 [y9r, y11r];
+
+  penpos11 (hair, -90);
+  x11r = .7 [lb, x10l];
+  y11r = 0;
+
+  penlabels (range 8 thru 12);
+
+  inner_t = 1.0;
+  outer_t = .85;
+
+  fill z8r {dir (beta)}
+       .. z9r{right}
+       ..tension outer_t.. z10r{down}
+       .. number_flare_path (z11r, 180, -90, hair, flare,
+                             x11l - lb, .18 height, 0.06, 1.5, 1)
+       .. z11l{right}
+       ..tension inner_t.. z10l{up}
+       ..tension inner_t.. z9l{left}
+       .. z8l{dir (delta)}
+       -- cycle;
+enddef;
+
+
+def draw_six (expr advance_width, glyph_width, left_bearing, stroke) =
+  save gw, lb;
+  save outer_t, t, sigma, tau;
+  save before, after, u, v;
+  path before, after;
+
+  if stroke:
+    set_char_box (0, advance_width + 0.5 thin#,
+                  0, 1.15 height# + 0.5 thin#);
+  else:
+    set_char_box (0, advance_width, 0, height#);
+  fi;
+
+  aw := hround_pixels (advance_width);
+  gw := hround_pixels (glyph_width);
+  lb := hround_pixels (left_bearing);
+
+  % The vertical distance between position `h - thin` (i.e., `y6l` for
+  % the unstroked version) and `y2r` must stay (approximately) the
+  % same so that the whitespace within the glyph doesn't shrink if the
+  % value for `thin` gets enlarged.
+  %
+  % We use a linear combination of `thick` and `height` because both
+  % values are directly derived from the number design size (`thin`
+  % would be the correct entity to use, but it contains a `max`
+  % function call in its definition, thus making the parameter
+  % unsuitable).
+  penpos2 (hair, 90);
+  z2r = (lb + gw / 2, .41 height + .91 thick - thin);
+
+  penpos3 (15/16 thick, 0);
+  x3r = lb + gw;
+  y3r = .5 [y4r, y2r];
+
+  penpos4 (hair, -90);
+  z4r = (x2, 0);
+
+  penpos7 (thick, 180);
+  x7r = lb;
+  y7r = .5 height;
+
+  penpos10 (thick, 180);
+  z10r = (lb, y3);
+
+  outer_t = 0.88;
+  t := tense;
+
+  before := z10{up}
+            .. z2r{right};
+
+  if stroke:
+    sigma := 100;
+    penpos6 (thin, sigma);
+    z6 = (aw, 1.05 height);
+    after := z7r{up}
+             .. z6r{dir (sigma - 90)}
+             .. z6l{dir (sigma + 90)}
+             ..tension 1 and 0.75.. z7l{down}
+             -- z10l;
+
+    z11 = (x6 - 0.55 aw, y6 + 0.1 height);
+    z12 = (x6 - 0.05 aw, y6 - 0.3 height);
+    tau = angle (z12 - z11);
+    penpos11 (thin, tau + 90);
+    penpos12 (thin, tau + 90);
+
+    fill z11r{dir (tau)}
+         -- z12r{dir (tau)}
+         .. z12l{dir (tau + 180)}
+         -- z11l{dir (tau + 180)}
+         .. cycle;
+  else:
+    penpos6 (hair, 90);
+    x6r = lb + .56 gw;
+    y6r = height;
+
+    after := z7r{up}
+             .. number_flare_path (z6r, 0, -90, hair, flare,
+                                   lb + 0.96 gw - x6r,
+                                   .16 height, 0.05, 2.5, 1)
+             .. z7l{down}
+             -- z10l;
+  fi;
+
+  (u, v) = before intersectiontimes after;
+
+  % draw
+  fill subpath (u, length before) of before
+       ..tension outer_t.. z3r{down}
+       ..tension outer_t.. z4r{left}
+       .. subpath (0, v) of after
+       .. cycle;
+
+  unfill z2l{right}
+         ..tension t.. z3l{down}
+         ..tension t.. z4l{left}
+         ..tension t.. z10l{up}
+         ..tension t.. cycle;
+
+  penlabels (range 1 thru 12);
+enddef;
+
+
+def draw_seven (expr advance_width, glyph_width, left_bearing,
+                     short_stem, stroke) =
+  save gw, lb;
+  save tolerance;
+  save alpha, beta, gamma, delta;
+  save t, pata, ta, patb, tb, bow;
+  save overshoot_x;
+
+  save bottom_x_factor, bottom_y_factor;
+  save top_x_factor, top_y_factor;
+
+  path pata, patb, bow;
+  numeric ta, tb;
+
+  if stroke:
+    % We shorten and move the stroke to be more upright for larger
+    % design sizes.
+    %
+    %                                    design size: 11.22 -> 25.20
+    bottom_x_factor := 0.0215 design_size + 0.3592; %  0.6  ->  0.9
+    bottom_y_factor := 0.0072 design_size + 0.4197; %  0.5  ->  0.6
+    top_x_factor := -0.0072 design_size + 1.2803;   %  1.2  ->  1.1
+    top_y_factor := -0.0072 design_size + 1.2803;   %  1.2  ->  1.1
+
+    set_char_box (0, advance_width,
+                  0, height# * top_x_factor + 0.5 thin#);
+  else:
+    set_char_box (0, advance_width, 0, height#);
+  fi;
+
+  gw := hround_pixels (glyph_width);
+  lb := hround_pixels (left_bearing);
+
+  overshoot_x = .75 thin;
+
+  alpha = -180;
+  calc_kuulleke (3/2 thick, alpha);
+
+  z1l = (lb + thin, 0);
+
+  beta = 55;
+  penpos5 (thin, 90 + beta);
+  z5 = (lb + gw, height) + (1/2 sqrt (2) * thin) * dir (-135)
+         + (overshoot_x, 0);
+
+  gamma = angle (length (z1r - z1), 2 kuulleke);
+  delta = 12;
+
+  pickup pencircle;
+
+  pata := z5l{dir (180 + beta)}
+          .. {dir (delta - 90)}z3r
+          .. z3l{dir (alpha - gamma)}
+          .. z4
+          .. {dir (alpha + gamma)}z2r
+          .. z2l{dir (beta + delta)}
+          .. {dir (beta)}z5r;
+
+  penlabels (1, 2, 3, 4, 5);
+
+  alpha := -45 * widen;
+  if stroke:
+    lb := 0;
+
+    z21 = (bottom_x_factor [lb, x4], bottom_y_factor * height);
+    z22 = (top_x_factor [lb, x4], top_y_factor * height);
+    tau = angle (z22 - z21);
+    penpos21 (thin, tau + 90);
+    penpos22 (thin, tau + 90);
+
+    fill z21r{dir (tau)}
+         -- z22r{dir (tau)}
+         .. z22l{dir (tau + 180)}
+         -- z21l{dir (tau + 180)}
+         .. cycle;
+
+    penlabels (21, 22);
+  fi;
+
+  penpos11 (1/2 thick, 90);
+  z11 = (lb + 3/2 thin, height - (thick + thin) / 2);
+
+  penpos13 (thin, 90 + beta);
+  z13 = z5;
+
+  penpos12 (thick, 90 + alpha);
+  x12 = 1/2 [x11, x13] - 1/4 thick;
+  y12 = height - 0.6 thick - 0.1 thin * widen;
+
+  penpos14 (thin, 0);
+  z14l = (lb, height - thin / 2);
+
+  penpos15 (thin, 0);
+  x15l = lb;
+  if short_stem:
+    y15l = y16l;
+  else:
+    y15l = height / 2 + thin / 2;
+  fi;
+
+  penpos16 (9/8 thick, 90);
+  z16r = (lb + thin, y11r + 2/16 thick);
+
+  tolerance := epsilon;
+
+  % Find proper tension to exactly touch the x axis.
+  % Later on we directly use `bow'.
+  vardef f (expr t) =
+    bow := z11r{dir (beta)}
+           ..tension t.. {dir (alpha)}z12r;
+    ypart (directionpoint right of bow) > height
+  enddef;
+
+  % the return value of `solve' is stored in a dummy variable
+  t = solve f (0.8, 1.2);
+
+  patb := z13l{dir (180 + beta)}
+          .. {dir (180 + alpha)}z12l
+          .. {dir (180 + beta)}z11l
+          .. {down}z16l
+          -- z15r{down}
+          .. {up}z15l
+          -- z14l{up}
+          .. {down}z14r
+          -- z16r{down}
+          ..tension 1.5.. {dir (beta)}bow
+          .. {dir (beta)}z13r;
+
+  (ta - 1, tb) = subpath (1, length pata) of pata
+                 intersectiontimes
+                 subpath (0, length patb - 1) of patb;
+  fill subpath (0, ta) of pata
+       -- subpath (tb, length patb) of patb
+       .. cycle;
+
+  penlabels (range 11 thru 16);
+enddef;
+
+
+def draw_eight (expr advance_width, glyph_width, left_bearing) =
+  save gw, lb;
+  save alpha, beta;
+
+  set_char_box (0, advance_width, 0, height#);
+
+  gw := hround_pixels (glyph_width);
+  lb := hround_pixels (left_bearing);
+
+  alpha = 60;
+  beta = alpha - 15;
+
+  z1 = (lb + gw / 2, h / 2 + thick / 8);
+
+  penpos2 (14/8 thin, 0);
+  z2 = (lb + 0.2 gw + 1.4 thin, h / 2 + thin);
+
+  penpos3 (3/2 thin, 0);
+  z3l = (lb, h / 4 + thin / 2);
+
+  penpos4 (hair, 90);
+  z4l = (x1, 0);
+
+  penpos5 (thick, 90 + 90 + alpha);
+  z5 = z1 + gw / 4 * dir (alpha - 90);
+
+  penpos6 (thick, 90 + 90 + alpha);
+  z6 = z1 + 0.2 gw * dir (90 + alpha);
+
+  penpos7 (hair, 90);
+  z7r = (x1 + .02 gw, h);
+
+  penpos8 (3/2 thin, 0);
+  z8r = (lb + 0.95 gw, 3/4 h + thin / 2);
+
+  penpos9 (13/8 thin, 0);
+  z9 = (lb + 0.8 gw - 1.5 thin, h / 2);
+
+  penlabels (range 1 thru 9);
+
+  save t;
+  t = tense;
+
+  fill z2r{dir (180 + beta)}
+       .. z3r{down}
+       .. z4r{right}
+       .. z5r{dir (90 + alpha)}
+       -- z6r{dir (90 + alpha)}
+       ..tension t.. z7r{right}
+       .. z8r{down}
+       .. {dir (180 + beta)}z9r
+       -- z9l{dir (beta)}
+       .. z8l{up}
+       .. z7l{left}
+       .. {dir (alpha - 90)}z6l
+       -- z5l{dir (alpha - 90)}
+       ..tension t.. z4l{left}
+       .. z3l{up}
+       .. {dir (beta)}z2l
+       -- cycle;
+enddef;
+
+
+def draw_nine (expr advance_width, glyph_width, left_bearing, stroke) =
+  draw_six (advance_width, glyph_width, left_bearing, stroke);
+
+  if stroke:
+    % The metrics box has some depth, and the advance width must be
+    % restored to the original, unstroked value to ensure correct
+    % vertical alignment of digit stacks.
+    set_char_box (0, advance_width,
+                  0.15 height# + 0.5 thin#, height#);
+  fi;
+
+% xy_mirror_char;
+  currentpicture := currentpicture scaled -1;
+  currentpicture := currentpicture shifted (2 lb + gw, h);
+enddef;
+
+
+save dot_diam;
+dot_diam# = 7/8 flare#;
+define_pixels (dot_diam);
+
+
+fet_beginchar ("plus", "plus");
+  set_char_box (0, .5 height#, -0.25 height#, 0.75 height#);
+
+  save hthick, vthick, size, outer_hsize, outer_vsize;
+
+  hthick# = vthick# = 2 linethickness#;
+  size# = 1.1 staff_space#;
+  define_whole_blacker_pixels (vthick);
+  define_whole_vertical_blacker_pixels (hthick);
+
+  outer_hsize = hround ((b + w - vthick) / 2);
+  outer_vsize = vround ((h + d - hthick) / 2);
+
+  centerx := hround (w / 2);
+  centery := vround ((h - d) / 2);
+
+  z1 = (centerx - hthick / 2, -d);
+  z2 = (centerx + hthick / 2, h);
+
+  labels (1, 2);
+
+  draw_rounded_block (z1, z2, hthick);
+  draw_rounded_block ((0, centery - vthick / 2),
+                      (w, (centery + vthick / 2)),
+                      vthick);
+fet_endchar;
+
+
+fet_beginchar ("numeral comma", "comma");
+  save pat, pos;
+  path pat;
+
+  set_char_box (0, dot_diam#, 3/2 dot_diam#, dot_diam#);
+
+  pat := (dot_diam / 2, 0)
+         .. (dot_diam, dot_diam / 2)
+         .. (dot_diam / 2, dot_diam)
+         .. (0, dot_diam / 2)
+         .. cycle;
+
+  pos = ypart (((w / 3, 0) -- (w / 3, dot_diam / 2))
+               intersectiontimes pat);
+  z0 = point pos of pat;
+
+  alpha = 65;
+  penpos1 (thin, alpha + 90);
+
+  z1l = (w / 2, -1.5 h + hair);
+  z2 = (w, h / 2);
+
+  pickup feta_fillpen;
+
+  % include z0 to assist removal of overlaps
+  fill subpath (0,3) of pat
+       .. z0
+       .. cycle;
+  filldraw z1l{dir (alpha)}
+           .. {up}z2
+           -- z0{direction pos of pat}
+           ..tension 0.95.. {dir (180 + alpha)}z1r
+           .. cycle;
+
+  labels (0, 2);
+  penlabels (1);
+fet_endchar;
+
+
+fet_beginchar ("numeral dash", "hyphen");
+  set_char_box (0, height# / 3, 0, height#);
+
+  draw_rounded_block ((-b, h / 3 - thin / 2),
+                      (w, h / 3 + thin / 2), thin);
+fet_endchar;
+
+
+fet_beginchar ("numeral dot", "period");
+  set_char_box (0, dot_diam#, 0, dot_diam#);
+
+  pickup pencircle scaled dot_diam;
+
+  drawdot (dot_diam / 2, dot_diam / 2);
+fet_endchar;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Numerals
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% Numerals in LilyPond are intended to be controlled by the following
+% OpenType font features, which can be arbitrarily combined.
+%
+%   'cv47' (character variant 47)
+%     If on, glyphs 'four' and 'seven' have shorter strokes.  Default
+%     is off.
+%
+%   'tnum' (tabular figures)
+%     If off (which is the default), glyphs 'zero' to 'nine' have no
+%     left and right side bearings.  If on, the glyphs all have the
+%     same advance width by making the bearings non-zero.
+%
+%   'ss01' (stylistic set 1)
+%     If on, glyphs 'zero' to 'nine' have a fatter design, making them
+%     more readable at small sizes.  Default is off.
+%
+%   'kern' (kerning)
+%     If on (which is the default), glyphs 'zero' to 'nine' and the
+%     punctuation glyphs 'plus', 'comma', 'hyphen', and 'period' have
+%     pairwise kerning.
+%
+% This file provides the necessary glyphs for 'cv47', 'tnum', and
+% 'ss01' ('kern' gets implemented later in the font generation chain).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Standard digits
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fet_beginchar ("numeral 0", "zero");
+  width_zero# := 11/15 height# * widen;
+
+  draw_zero (width_zero#, width_zero#, 0);
+fet_endchar;
+
+
+fet_beginchar ("numeral 1", "one");
+  width_one# := 1/2 foot_width# + 3/2 thick# + 1/2 hair#;
+
+  draw_one (width_one#, 0);
+fet_endchar;
+
+
+fet_beginchar ("numeral 2", "two");
+  width_two# := 22/30 height# * widen;
+
+  draw_two (width_two#, width_two#, 0, false);
+fet_endchar;
+
+
+fet_beginchar ("numeral 3", "three");
+  width_three# := 2/3 height# * widen;
+
+  draw_three (width_three#, width_three#, 0);
+fet_endchar;
+
+
+fet_beginchar ("numeral 4", "four");
+  width_four# := 4/5 height# * widen;
+
+  draw_four (width_four#, width_four#, 0, false, false);
+fet_endchar;
+
+
+fet_beginchar ("numeral 4 alternative", "four.alt");
+  width_four# := 4/5 height# * widen;
+
+  draw_four (width_four#, width_four#, 0, true, false);
+fet_endchar;
+
+
+fet_beginchar ("numeral 5", "five");
+  width_five# := 27/40 height# * widen;
+
+  draw_five (width_five#, width_five#, 0, false);
+fet_endchar;
+
+
+fet_beginchar ("numeral 6", "six");
+  width_six# := .68 height# * widen;
+
+  draw_six (width_six#, width_six#, 0, false);
+fet_endchar;
+
+
+fet_beginchar ("numeral 7", "seven");
+  width_seven# := 11/15 height# * widen - thin#;
+
+  draw_seven (width_seven#, width_seven#, 0, false, false);
+fet_endchar;
+
+
+fet_beginchar ("numeral 7 alternative", "seven.alt");
+  width_seven# := 11/15 height# * widen - thin#;
+
+  draw_seven (width_seven#, width_seven#, 0, true, false);
+fet_endchar;
+
+
+fet_beginchar ("numeral 8", "eight");
+  width_eight# := 11/15 height# * widen;
+
+  draw_eight (width_eight#, width_eight#, 0);
+fet_endchar;
+
+
+fet_beginchar ("numeral 9", "nine");
+  width_nine# := .68 height# * widen;
+
+  draw_nine (width_nine#, width_nine#, 0, false);
+fet_endchar;
+
+
+fixed_width_advance# := max (width_zero#,
+                             width_one#,
+                             width_two#,
+                             width_three#,
+                             width_four#,
+                             width_five#,
+                             width_six#,
+                             width_seven#,
+                             width_eight#,
+                             width_nine#);
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Fixed-width digits
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fet_begingroup ("fixedwidth");
+
+fet_beginchar ("fixed-width 0", "zero");
+  save width, lsb;
+
+  width# := 11/15 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_zero (fixed_width_advance#, width#, lsb#);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 1", "one");
+  save width, lsb;
+
+  width# := 1/2 foot_width# + 3/2 thick# + 1/2 hair#;
+  lsb# := 1.2 * (fixed_width_advance# - width#) / 2;
+
+  draw_one (fixed_width_advance#, lsb#);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 2", "two");
+  save width, lsb;
+
+  width# := 22/30 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_two (fixed_width_advance#, width#, lsb#, false);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 3", "three");
+  save width, lsb;
+
+  width# := 2/3 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_three (fixed_width_advance#, width#, lsb#);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 4", "four");
+  save width, lsb;
+
+  width# := 4/5 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_four (fixed_width_advance#, width#, lsb#, false, false);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 4 alternative", "four.alt");
+  save width, lsb;
+
+  width# := 4/5 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_four (fixed_width_advance#, width#, lsb#, true, false);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 5", "five");
+  save width, lsb;
+
+  width# := 27/40 height# * widen;
+  lsb# := 0.7 * (fixed_width_advance# - width#) / 2;
+
+  draw_five (fixed_width_advance#, width#, lsb#, false);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 6", "six");
+  save width, lsb;
+
+  width# := .68 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_six (fixed_width_advance#, width#, lsb#, false);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 7", "seven");
+  save width, lsb;
+
+  width# := 11/15 height# * widen - 2/3 thin#;
+  lsb# := 1.2 * (fixed_width_advance# - width#) / 2;
+
+  draw_seven (fixed_width_advance#, width#, lsb#, false, false);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 7 alternative", "seven.alt");
+  save width, lsb;
+
+  width# := 11/15 height# * widen - 2/3 thin#;
+  lsb# := 1.2 * (fixed_width_advance# - width#) / 2;
+
+  draw_seven (fixed_width_advance#, width#, lsb#, true, false);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 8", "eight");
+  save width, lsb;
+
+  width# := 11/15 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_eight (fixed_width_advance#, width#, lsb#);
+fet_endchar;
+
+
+fet_beginchar ("fixed-width 9", "nine");
+  save width, lsb;
+
+  width# := .68 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_nine (fixed_width_advance#, width#, lsb#, false);
+fet_endchar;
+
+fet_endgroup ("figbass");
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Fattened digits
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fet_begingroup ("fattened");
+
+save thin, hair, plus_size;
+
+thin# := 1.5 (thick# / 4 * fatten + max (.1 (height# / 10 - 1), 0));
+hair# := thin# * .8;
+define_whole_pixels (thin, hair);
+
+plus_size# := 7/20 height#;
+define_whole_pixels (plus_size);
+
+
+fet_beginchar ("fattened 0", "zero");
+  width_zero# := 11/15 height# * widen;
+
+  draw_zero (width_zero#, width_zero#, 0);
+fet_endchar;
+
+
+fet_beginchar ("fattened 1", "one");
+  width_one# := 1/2 foot_width# + 3/2 thick# + 1/2 hair#;
+
+  draw_one (width_one#, 0);
+fet_endchar;
+
+
+fet_beginchar ("fattened 2", "two");
+  width_two# := 22/30 height# * widen;
+
+  draw_two (width_two#, width_two#, 0, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened 3", "three");
+  width_three# := 2/3 height# * widen;
+
+  draw_three (width_three#, width_three#, 0);
+fet_endchar;
+
+
+fet_beginchar ("fattened 4", "four");
+  width_four# := 4/5 height# * widen;
+
+  draw_four (width_four#, width_four#, 0, false, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened 4 alternative", "four.alt");
+  width_four# := 4/5 height# * widen;
+
+  draw_four (width_four#, width_four#, 0, true, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened 5", "five");
+  width_five# := 27/40 height# * widen;
+
+  draw_five (width_five#, width_five#, 0, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened 6", "six");
+  width_six# := .68 height# * widen;
+
+  draw_six (width_six#, width_six#, 0, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened 7", "seven");
+  width_seven# := 11/15 height# * widen - thin#;
+
+  draw_seven (width_seven#, width_seven#, 0, false, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened 7 alternative", "seven.alt");
+  width_seven# := 11/15 height# * widen - thin#;
+
+  draw_seven (width_seven#, width_seven#, 0, true, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened 8", "eight");
+  width_eight# := 11/15 height# * widen;
+
+  draw_eight (width_eight#, width_eight#, 0);
+fet_endchar;
+
+
+fet_beginchar ("fattened 9", "nine");
+  width_nine# := .68 height# * widen;
+
+  draw_nine (width_nine#, width_nine#, 0, false);
+fet_endchar;
+
+fet_endgroup ("fattened");
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Fattened, fixed-width digits
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fet_begingroup ("fattened.fixedwidth");
+
+save thin, hair, plus_size;
+
+thin# := 1.5 (thick# / 4 * fatten + max (.1 (height# / 10 - 1), 0));
+hair# := thin# * .8;
+define_whole_pixels (thin, hair);
+
+plus_size# := 7/20 height#;
+define_whole_pixels (plus_size);
+
+
+fet_beginchar ("fattened, fixed-width 0", "zero");
+  save width, lsb;
+
+  width# := 11/15 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_zero (fixed_width_advance#, width#, lsb#);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 1", "one");
+  save width, lsb;
+
+  width# := 1/2 foot_width# + 3/2 thick# + 1/2 hair#;
+  lsb# := 1.2 * (fixed_width_advance# - width#) / 2;
+
+  draw_one (fixed_width_advance#, lsb#);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 2", "two");
+  save width, lsb;
+
+  width# := 22/30 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_two (fixed_width_advance#, width#, lsb#, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 3", "three");
+  save width, lsb;
+
+  width# := 2/3 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_three (fixed_width_advance#, width#, lsb#);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 4", "four");
+  save width, lsb;
+
+  width# := 4/5 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_four (fixed_width_advance#, width#, lsb#, false, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 4 alternative", "four.alt");
+  save width, lsb;
+
+  width# := 4/5 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_four (fixed_width_advance#, width#, lsb#, true, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 5", "five");
+  save width, lsb;
+
+  width# := 27/40 height# * widen;
+  lsb# := 0.7 * (fixed_width_advance# - width#) / 2;
+
+  draw_five (fixed_width_advance#, width#, lsb#, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 6", "six");
+  save width, lsb;
+
+  width# := .68 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_six (fixed_width_advance#, width#, lsb#, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 7", "seven");
+  save width, lsb;
+
+  width# := 11/15 height# * widen - 2/3 thin#;
+  lsb# := 1.2 * (fixed_width_advance# - width#) / 2;
+
+  draw_seven (fixed_width_advance#, width#, lsb#, false, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 7 alternative", "seven.alt");
+  save width, lsb;
+
+  width# := 11/15 height# * widen - 2/3 thin#;
+  lsb# := 1.2 * (fixed_width_advance# - width#) / 2;
+
+  draw_seven (fixed_width_advance#, width#, lsb#, true, false);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 8", "eight");
+  save width, lsb;
+
+  width# := 11/15 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_eight (fixed_width_advance#, width#, lsb#);
+fet_endchar;
+
+
+fet_beginchar ("fattened, fixed-width 9", "nine");
+  save width, lsb;
+
+  width# := .68 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_nine (fixed_width_advance#, width#, lsb#, false);
+fet_endchar;
+
+fet_endgroup ("fattened.fixedwidth");
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Additional symbols for figured bass
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fet_begingroup ("figbass");
+
+save thin, hair, plus_size;
+
+thin# := 1.5 (thick# / 4 * fatten + max (.1 (height# / 10 - 1), 0));
+hair# := thin# * .8;
+define_whole_pixels (thin, hair);
+
+plus_size# := 7/20 height#;
+define_whole_pixels (plus_size);
+
+
+fet_beginchar ("figured bass 2 plus", "twoplus");
+  save width, lsb;
+
+  width# := 22/30 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_two (fixed_width_advance#, width#, lsb#, true);
+fet_endchar;
+
+
+fet_beginchar ("figured bass 4 plus", "fourplus");
+  save width, lsb;
+
+  width# := 4/5 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_four (fixed_width_advance#, width#, lsb#, true, true);
+fet_endchar;
+
+
+fet_beginchar ("figured bass 5 plus", "fiveplus");
+  save width, lsb;
+
+  width# := 27/40 height# * widen;
+  lsb# := 0.7 * (fixed_width_advance# - width#) / 2;
+
+  draw_five (fixed_width_advance#, width#, lsb#, true);
+fet_endchar;
+
+
+fet_beginchar ("figured bass stroked 6", "sixstroked");
+  save width, lsb;
+
+  width# := .68 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_six (fixed_width_advance#, width#, lsb#, true);
+fet_endchar;
+
+
+fet_beginchar ("figured bass stroked 7", "sevenstroked");
+  save width, lsb;
+
+  width# := 11/15 height# * widen - thin#;
+  lsb# := 1.2 * (fixed_width_advance# - width#) / 2;
+
+  draw_seven (fixed_width_advance#, width#, lsb#, true, true);
+fet_endchar;
+
+
+fet_beginchar ("figured bass stroked 9", "ninestroked");
+  save width, lsb;
+
+  width# := .68 height# * widen;
+  lsb# := (fixed_width_advance# - width#) / 2;
+
+  draw_nine (fixed_width_advance#, width#, lsb#, true);
+fet_endchar;
+
+fet_endgroup ("figbass");

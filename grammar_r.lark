@@ -1,0 +1,78 @@
+#=========================================PARSER==================================================
+start : asgs export*
+
+?export : ("export"i "(" ID args")") -> export 
+        |("Play"i "(" ID ")") -> play
+# ver RE para 2 ou mais
+#extended BNF
+args: ("," ARG)*
+
+asgs :ID "=" cexp asgs -> pattern_asg
+     |
+?cexp:pexp
+     |cexp "+" pexp -> concatenation2
+?pexp:alg_exp
+    |pexp "||" alg_exp ->parallel2
+?alg_exp:ID
+       |drum_pattern
+       |ID "(" func_arg (","func_arg)*")" -> func
+       |"("cexp")"
+       |alg_exp "*" INT -> looping
+
+?func_arg:cexp
+        |INT
+        |DECIMAL
+
+#esta recursivo para atravessar a arvore
+
+drum_pattern : "{" TIME_SIG ";" "Tempo"i "=" TEMPO ";" instrument_lines (new_line)* "}" -> drum_description
+
+new_line:"nt"i TIME_SIG ";" "Tempo" "=" TEMPO ";" instrument_lines -> new_time
+
+instrument_lines : (INST notes+ ";")+ -> instrument_lines
+
+?notes : ("1" "/" NOTE_LENGTH "|" note_seq "|")*
+
+note_seq : (HIT|PAUSE|DOT|("{"tuplet"}"))*
+
+tuplet: (HIT|PAUSE|("{"tuplet"}"))*
+
+#=========================================LEXER==================================================
+
+TEMPO : INT
+
+FILE_TYPE : CNAME
+
+FILE_PATH: _STRING_INNER
+
+ID : CNAME
+
+TIME_SIG : "C"i #common time (4/4)
+         | INT "/" INT
+
+NOTE_LENGTH : INT
+
+HIT : "X"i
+
+PAUSE : "." 
+
+DOT : "D"i
+
+INST : "hh"i
+     | "bd"i
+     | "sn"i
+     | "tomfl"i
+     | "cymc"i
+
+ARG : "'" FILE_PATH "'"
+     | FILE_TYPE
+
+%import common.INT
+%import common.DECIMAL
+%import common.CNAME
+%import common.WS
+%import common.SH_COMMENT
+%import common._STRING_INNER
+
+%ignore SH_COMMENT
+%ignore WS

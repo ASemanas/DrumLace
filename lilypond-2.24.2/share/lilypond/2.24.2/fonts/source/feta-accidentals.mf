@@ -1,0 +1,58 @@
+% Feta (not the Font-En-Tja) music font --  Accidentals
+% This file is part of LilyPond, the GNU music typesetter.
+%
+% Copyright (C) 1997--2022 Han-Wen Nienhuys <hanwen@xs4all.nl>
+%
+% The LilyPond font is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version, or you can redistribute it under
+% the SIL Open Font License.
+%
+% LilyPond is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
+
+
+%
+% Accidentals from various sources, notably
+%
+%   Baerenreiter edition of Schuberts `Auf dem Strom' (sharp, natural)
+%   F Hofmeister edition of Muellers `Etueden fuer Horn' (double sharp, flat)
+%
+
+
+%
+% Naming for accidentals (including microtonal variants):
+%
+%   SHARPBASE[.SLASHES.STEMS]
+%   FLATBASE[.MODIFIER]
+%
+% Examples:
+%
+%   sharp.slashslash.stem
+%   mirroredflat.flat
+%
+%
+
+
+fet_begingroup ("accidentals");
+  % The figured bass variants of accidentals have the same width,
+  % `figbass_width`.  The height of the sharp, natural, and flat
+  % accidentals is also the same; it is the number glyph height plus
+  % `figbass_y` (to make them slightly stick out vertically on the top
+  % and bottom).  Both values are assigned in macro `draw_sharp` (in
+  % file `feta-sharps.mf`).
+  save figbass_width, figbass_y;
+
+  input feta-arrow;
+  input feta-sharps;
+  input feta-naturals;
+  input feta-flats;
+  input feta-sori-koron;
+  input feta-parenthesis;
+fet_endgroup ("accidentals");

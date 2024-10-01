@@ -1,0 +1,7 @@
+% Produce font files at specified size.
+
+design_size := 20;
+
+% use feta-test for debugging.
+input feta-other-generic;
+end.

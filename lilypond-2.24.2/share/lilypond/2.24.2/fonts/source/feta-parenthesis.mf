@@ -1,0 +1,63 @@
+% Feta (not the Font-En-Tja) music font --  Parentheses
+% This file is part of LilyPond, the GNU music typesetter.
+%
+% Copyright (C) 1997--2022 Han-Wen Nienhuys <hanwen@xs4all.nl>
+% Copyright (C) 2013--2022 Janek Warchoł <lemniskata.bernoullego@gmail.com>
+%
+% The LilyPond font is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version, or you can redistribute it under
+% the SIL Open Font License.
+%
+% LilyPond is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
+
+
+def draw_paren =
+  save leftindent;
+
+  leftindent := .2 staff_space;
+
+  set_char_box (0, .5 staff_space# + stafflinethickness#,
+                staff_space#, staff_space#);
+
+  d := d - feta_shift;
+
+  z1 = (leftindent, h);
+  z2 = (w - stafflinethickness, .5 (h - d));
+  z3 = (leftindent, -d);
+
+  penpos1 (stafflinethickness, 35);
+  penpos2 (.1 staff_space + stafflinethickness, 0);
+  penpos3 (stafflinethickness, -35);
+
+  fill z2l{down}
+       .. simple_serif (z3l, z3r, 90)
+       .. z2r{up}
+       .. simple_serif (z1r, z1l, 90)
+       .. z2l{down}
+       -- cycle;
+enddef;
+
+
+fet_beginchar ("right parenthesis", "rightparen");
+  draw_paren;
+  penlabels (1, 2, 3);
+
+  draw_staff_if_debugging (-2, 2);
+fet_endchar;
+
+
+fet_beginchar ("left parenthesis", "leftparen");
+  draw_paren;
+
+  currentpicture := currentpicture xscaled -1;
+
+  set_char_box (charwd, charbp, chardp, charht);
+fet_endchar;

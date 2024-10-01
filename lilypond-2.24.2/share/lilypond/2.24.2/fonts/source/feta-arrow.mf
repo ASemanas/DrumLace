@@ -1,0 +1,114 @@
+% Feta (not the Font-En-Tja) music font --  Accidentals
+% This file is part of LilyPond, the GNU music typesetter.
+%
+% Copyright (C) 2005--2022 Han-Wen Nienhuys <hanwen@xs4all.nl>
+%
+% The LilyPond font is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version, or you can redistribute it under
+% the SIL Open Font License.
+%
+% LilyPond is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
+
+
+%
+% Draw an arrow
+%
+% * `stemslant' gives the direction of the stem's left boundary
+%   (needed for brushed stems, equals "up" for straight stems)
+% * `extend' is used to make the stem longer or shorter (if negative);
+%   different kinds of accidentals need different values here
+%
+% For accidentals, the left or right arrow part should be outside of the
+% bounding box.  Using arrowed sharp glyphs as the model, the horizontal
+% distance from the `attach` point to the bounding box width or breapth
+% should be `3/10 staff_space`; this is very near to the real value (with a
+% delta of approx. 3%):
+%
+%   glyph `sharp`, horizontal position `pos` of point 5:
+%
+%     pos = outer_space + .5 stem_thickness
+%     outer_space = .5 (default_width - dist_between_stems - stem_thickness)
+%     -> pos = .5 default_width - .5 dist_between_stems
+%
+%     dist_between_stems = 7/16 default_width
+%     -> pos = 9/32 default_width
+%
+%     default_width = 1.1 staff_space
+%     -> pos = 99/320 staff_space
+%            =~ 3/10 staff_space
+%
+% An even better small fractional approximation would be 4/13, with a
+% delta of approx. 0.5%; however, such a fraction looks unnatural if
+% compared to other Feta values.
+%
+def draw_arrow (expr attach, stemwidth, stemslant, extend, pointingdown) =
+  begingroup;
+    save htip;  % tip height
+    save wwing; % wing `radius'
+    save angle_wing_bot, angle_wing_top, angle_tip;
+    save upshift;
+    save pat;
+    path pat;
+
+    clearxy;
+
+    wwing := 0.26 stemwidth;
+    htip := staff_space * 0.85 + stafflinethickness - wwing;
+
+    % `flip' is used to reflect the arrow vertically
+    % if arrow points downward
+    transform flip;
+    if pointingdown:
+      flip = identity reflectedabout (origin, right);
+    else:
+      flip = identity;
+    fi;
+
+    z1 = attach shifted (-stemwidth / 2, 0);
+    upshift := max (0, wwing + 0.1 staff_space + extend);
+    z2 = z1 shifted (((unitvector stemslant)
+                        scaled upshift) transformed flip);
+    z2 - z3 = ( 0.38 staff_space, 0.05 htip) transformed flip;
+    z4 = attach shifted ((-0.2 stemwidth, upshift + htip) transformed flip);
+
+    % `angle_wing_bot' is the angle at which the arc
+    % from z2 to z3a enters z3a
+    % `angle_wing_top' is the angle at which the arc
+    % from z3b to z4 leaves z3b
+    % `angle_tip' is the angle at which the arc
+    % from z4 to its vertically mirrored point leaves z4
+    angle_wing_bot = 30;
+    angle_wing_top = 55;
+    angle_tip = 68;
+
+    z3a = z3 shifted ((((dir angle_wing_bot) rotated -90)
+                         scaled wwing) transformed flip);
+    z3b = z3 shifted ((((dir angle_wing_top) rotated 90)
+                         scaled wwing) transformed flip);
+
+    pat := z1
+           -- z2{stemslant transformed flip}
+           .. {(-dir angle_wing_bot) transformed flip}z3a
+           .. z3b{(dir angle_wing_top) transformed flip}
+           .. z4{(dir angle_tip) transformed flip};
+    pat := pat shifted (-xpart attach, 0);
+    pat := pat
+           .. reverse pat xscaled -1 shifted (-feta_eps, 0);
+    pat := pat shifted (xpart attach, 0);
+    if not pointingdown:
+      pat := reverse pat;
+    fi;
+
+    labels (range 1 thru 4, 3a, 3b);
+
+    pat
+  endgroup
+enddef;

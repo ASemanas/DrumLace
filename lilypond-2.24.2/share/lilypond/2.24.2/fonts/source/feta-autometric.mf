@@ -1,0 +1,303 @@
+% Feta (not the Font-En-Tja) music font -- administrative MF routines
+% This file is part of LilyPond, the GNU music typesetter.
+%
+% Copyright (C) 1997--2022 Han-Wen Nienhuys <hanwen@xs4all.nl>
+%          Jan Nieuwenhuizen <janneke@gnu.org>
+%
+% These macros help create ascii logging output
+% to automate generation of the lily tables.
+% The output should be parsed by the mf-to-table script.
+%
+% The LilyPond font is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version, or under the SIL Open Font License.
+%
+% LilyPond is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with LilyPond.  If not, see <http://www.gnu.org/licenses/>.
+
+
+message "**********************************************************************";
+message "Using feta Autometric macros.";
+message "Order of glyph parameters:";
+message "  name bp wd dp ht charwx charwy chardwx chardwy idstr";
+message "**********************************************************************";
+message "";
+
+
+% Parameter `name` is for information only.
+def fet_beginfont (expr name, size) =
+  font_identifier := name & decimal size;
+  font_size size;
+  font_coding_scheme "asis";
+  message "@{font@:GNU@:LilyPond@:" & name
+          & "@:" & decimal size
+          & "@}";
+  message "";
+enddef;
+
+
+def fet_endfont =
+  message "@{tnof@}";
+enddef;
+
+
+% group or table?
+def fet_begingroup (expr name) =
+  begingroup;
+  save feta_group;
+  string feta_group;
+
+  feta_group := name;
+
+  message "@{group@:" & feta_group
+          & "@}";
+  message "";
+enddef;
+
+
+def fet_endgroup (expr name) =
+  message "@{puorg@:" & name
+          & "@}";
+  message "";
+  endgroup;
+enddef;
+
+
+def autometric_parameter (expr name, value) =
+  message "@{parameter@:" & name
+          & "@:" & decimal value
+          & "@}";
+enddef;
+
+
+def autometric_output_char =
+  message "@{char@:" & charnamestr
+          & "@:" & decimal charbp
+          & "@:" & decimal charwd
+          & "@:" & decimal chardp
+          & "@:" & decimal charht
+          & "@:" & decimal charwx
+          & "@:" & decimal charwy
+          & "@:" & decimal chardwx
+          & "@:" & decimal chardwy
+          & "@:" & idstr
+          & "@}";
+enddef;
+
+
+def hround_pixels (expr sharped) =
+  hround (sharped * hppp)
+enddef;
+
+
+def vround_pixels (expr sharped) =
+  vround (sharped * vppp)
+enddef;
+
+
+def tand (expr alpha) =
+  (sind alpha / cosd alpha)
+enddef;
+
+
+def to_bp (expr num) =
+  decimal (num * bp_per_pixel)
+enddef;
+
+
+% breapth (bp), width (wd), depth (dp), height (ht)
+%
+%              ^ y
+%              |
+%              |
+% --      +----+------------+
+%         |    |            |
+%         |    |            |
+%         |    |            |
+% ht      |    |            |
+%         |    |            |
+%         |    |            |
+%         |    |(0|0)       |
+% --   ---+----o------------+---> x
+%         |    |            |
+% dp      |    |            |
+%         |    |            |
+% --      +----+------------+
+%              |
+%              |
+%
+%         | bp |     wd     |
+%
+% `breapth' is positive leftwards; `depth' is positive downwards.
+%
+def set_char_box (expr b_sharp, w_sharp, d_sharp, h_sharp) =
+  save scharbp, scharht, scharwd, schardp;
+
+  % some paranoia if someone calls set_char_box (charbp, charwd, ...)
+  scharbp := b_sharp;
+  scharht := h_sharp;
+  schardp := d_sharp;
+  scharwd := w_sharp;
+
+  charbp := scharbp;
+  charht := scharht;
+  chardp := schardp;
+  charwd := scharwd;
+
+  w := hround (w_sharp * hppp);
+  b := hround (b_sharp * hppp);
+  h := vround (h_sharp * vppp);
+  d := vround (d_sharp * vppp);
+
+  charwx := charwd;
+  charwy := 0;
+
+  % additions for mf2pt1 (`bbox' is called `glyph_dimensions' starting
+  % with version 2.4.2)
+  if known bp_per_pixel:
+    special "% MF2PT1: bbox "
+            & to_bp (-b) & " "
+            & to_bp (-d) & " "
+            & to_bp (w) & " "
+            & to_bp (h);
+    special "% MF2PT1: glyph_dimensions "
+            & to_bp (-b) & " "
+            & to_bp (-d) & " "
+            & to_bp (w) & " "
+            & to_bp (h);
+    special "% MF2PT1: font_size " & decimal designsize;
+    special "% MF2PT1: font_slant " & decimal font_slant_;
+
+    for fvar = "font_identifier",
+               "font_coding_scheme",
+               "font_version",
+               "font_comment",
+               "font_family",
+               "font_weight",
+               "font_name":
+      if known scantokens (fvar & "_"):
+        special "% MF2PT1: "
+                & fvar & " "
+                & scantokens (fvar & "_");
+      fi;
+    endfor;
+
+    for fvar = "font_underline_position",
+               "font_underline_thickness":
+      if known scantokens (fvar & "_"):
+        special "% MF2PT1: "
+                & fvar & " "
+                & scantokens ("decimal " & fvar & "_");
+      fi;
+    endfor;
+
+    special "% MF2PT1: font_fixed_pitch "
+            & (if font_fixed_pitch_: "1" else: "0" fi);
+
+    % this must come after the `font_size' special
+    special "% MF2PT1: charwd " & decimal charwd;
+  fi;
+enddef;
+
+
+def no_dimen_beginchar (expr c) =
+  begingroup;
+  charcode := if known c: byte c else: 0; fi;
+  charic := 0;
+  clearxy;
+  clearit;
+  clearpen;
+  scantokens extra_beginchar;
+enddef;
+
+
+code := 0;
+
+
+% starts just as plain mf's beginchar:
+%     charcode,
+% and then adds:
+%     charname        see below
+%     id        index in lily's table
+
+% The dimensions are uninitialised; you should use set_char_box manually.
+def fet_beginchar (expr name, id_lit) =
+  save idstr, charnamestr;
+  save charbp;
+  save w, b, h, d;
+  save charwx, charwy;
+  save chardwx, chardwy;
+
+  string idstr, charnamestr;
+  charnamestr := name;
+  idstr := id_lit;
+
+  % addition for mf2pt1
+  if known bp_per_pixel:
+    if known feta_group:
+      special "% MF2PT1: glyph_name "
+              & feta_group & "." & idstr;
+    else:
+      special "% MF2PT1: glyph_name " & idstr;
+    fi;
+  fi;
+
+  no_dimen_beginchar (incr code) name;
+enddef;
+
+
+def makebox_with_breapth (text r) =
+  % Recompute scaled box dimensions; they might have been adjusted
+  % to get better pixel rendering.  However, we want to display
+  % the bounding box exactly as given by the metric values in
+  % `set_char_box`.
+
+  b := hround (charbp * hppp);
+  w := hround (charwd * hppp);
+  h := vround (charht * vppp);
+  d := vround (chardp * vppp);
+
+  for y = -d, 0, h:
+    r ((-b, y), (w, y));
+  endfor;
+
+  for x = -b, 0, w:
+    r ( (x, -d), (x, h));
+  endfor;
+enddef;
+
+
+%
+% override plain endchar.  We want a different box.
+%
+def breapth_endchar =
+  scantokens extra_endchar;
+
+  chardx := w + b;        % advance width
+
+  if proofing > 0:
+    makebox_with_breapth (proofrule);
+  fi;
+
+  shipit;
+  endgroup;
+enddef;
+
+
+def fet_endchar =
+  % GSoC-2020 TODO: Document these guys where needed
+  if unknown chardwx:
+    chardwx := charwd - charbp - charwx;
+  fi;
+  if unknown chardwy:
+    chardwy := charht - chardp - charwy;
+  fi;
+  autometric_output_char;
+  breapth_endchar;
+enddef;
