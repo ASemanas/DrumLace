@@ -7,7 +7,7 @@ start : asgs export*
 #extended BNF
 args: ("," ARG)*
 
-asgs :ID "=" cexp asgs -> pattern_asg
+asgs :ID "=" cexp";"? asgs -> pattern_asg
      |
 ?cexp:pexp
      |cexp "+" pexp -> concatenation2

@@ -6,7 +6,7 @@ fs="fluidsynth -F"
 sf="soundfonts/Real_Drum_s__GM.sf2"
 
 #;fluidsynth -F out/out.wav out/out.midi;aplay out/out.wav
-./main.py $1 $2 > /dev/null 2>&1
+./main.py $1 $2 #> /dev/null 2>&1
 
 exit_status=$?
 
