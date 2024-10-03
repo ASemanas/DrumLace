@@ -79,7 +79,7 @@ if (isset($_POST["Render"])){
         <center><textarea name="code" rows="20%" cols="50%" style="font-size: 15pt" spellcheck="false"><?php echo $code;?></textarea>
         <input id="Render" type="submit" name="Render" value="Render">
       </form>
-      <div class="hyperb"><a download href=<?php echo $file_path ?> target="_blank">Save Program</a></div>
+      <div class="hyperb"><a download="DrumLaceProg.txt" href=<?php echo $file_path ?> target="_blank">Save Program</a></div>
     </div>
     </center>
     <div class="column">
