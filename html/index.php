@@ -1,8 +1,10 @@
 <?php
 header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+header("Last.Modified: ".gmdate("D, d M Y H:i:s")." GMT");
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Cache-Control: post-check=0, pre-check=0', FALSE);
 header('Pragma: no-cache');
+header("Clear-Site-Data");
 session_start();
 
 function create_user_directory($user_dir) {
@@ -43,16 +45,24 @@ res=funkr||(plates+platesa)*2 + cym
   
 export(res)";
 
+$time=time();
+$oldtime="0";
+
 if (isset($_POST["Render"])){
+  if ($oldtime != "0"){exec("rm /wav/{$user}patternWAV{$oldtime}.wav");}
+  $time=time();
   $code=$_POST["code"];
   $file_path="./in/input{$user}.txt";
   $fp = fopen(".{$file_path}", "w+");#nao sei pq precisa daquele ponto mas da erro sem ele
   fwrite ($fp,$code);
   fclose ($fp);
-  $return = exec("cd ..;./run.sh {$file_path} {$user_dir}");
+  $return = exec("cd ..;./run.sh {$file_path} {$user_dir} {$time}");
   if ($return=="0"){
     $error="compilation sucessfull!";}
   else {$error="compilation failed! Check for errors in code";}
+  $Newwavpath="/wav/{$user}patternWAV{$time}.wav";
+  exec("mv .$wavpath .$Newwavpath");
+  $oldtime=$time;
 } 
 ?>
 <!DOCTYPE html>
@@ -93,7 +103,7 @@ if (isset($_POST["Render"])){
         </div>
       </form>
       <audio controls>
-        <source src=<?php echo $wavpath;?> type="audio/wav" >
+        <source src=<?php echo "$Newwavpath"?> type="audio/wav" >
         Your browser does not support the audio element.
       </audio><br>
       <?php echo $error;?>
