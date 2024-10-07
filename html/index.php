@@ -51,6 +51,7 @@ $oldtime="0";
 if (isset($_POST["Render"])){
   if ($oldtime != "0"){exec("rm /wav/{$user}patternWAV{$oldtime}.wav");}
   $time=time();
+  $Newimgpath=$imgpath;
   $code=$_POST["code"];
   $file_path="./in/input{$user}.txt";
   $fp = fopen(".{$file_path}", "w+");#nao sei pq precisa daquele ponto mas da erro sem ele
@@ -58,8 +59,9 @@ if (isset($_POST["Render"])){
   fclose ($fp);
   $return = exec("cd ..;./run.sh {$file_path} {$user_dir} {$time}");
   if ($return=="0"){
-    $error="compilation sucessfull!";}
-  else {$error="compilation failed! Check for errors in code";}
+    $error="compilation sucessfull!";
+  }
+  else {$error="compilation failed! Check for errors in code";$Newimgpath="/images/error/error.pdf";}
   $Newwavpath="/wav/{$user}patternWAV{$time}.wav";
   exec("mv .$wavpath .$Newwavpath");
   $oldtime=$time;
@@ -93,7 +95,7 @@ if (isset($_POST["Render"])){
     </div>
     </center>
     <div class="column">
-      <center><iframe  src= <?php echo "$imgpath#toolbar=0&navpanes=0";?> title="Sheet" width="650" height="400"></iframe>
+      <center><iframe  src= <?php echo "$Newimgpath#toolbar=0&navpanes=0";?> title="Sheet" width="650" height="400"></iframe>
       <br>
       <form action="index.php" method="post">
         <div class="hyperb">
