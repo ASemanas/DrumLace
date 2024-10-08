@@ -102,7 +102,7 @@ if (isset($_POST["Render"])){
       <form action="index.php" method="post">
         <div class="hyperb">
         <a href=<?php echo $imgpath;?> target="_blank">Open PDF</a>
-        <a href=<?php echo $wavpath;?> target="_blank">Download WAV</a>
+        <a href=<?php echo $Newwavpath;?> target="_blank">Download WAV</a>
         <a href=<?php echo $midipath;?> target="_blank">Download MIDI</a>
         </div>
       </form>
