@@ -46,10 +46,12 @@ res=funkr||(plates+platesa)*2 + cym
 export(res)";
 
 $time=time();
-$oldtime="0";
 
 if (isset($_POST["Render"])){
-  if ($oldtime != "0"){exec("rm /wav/{$user}patternWAV{$oldtime}.wav");}
+  $timestampFile="./wav/filepath/timestamp$user";
+  if (file_exists($timestampFile)) {
+    $lastTimestamp = file_get_contents($timestampFile);
+    unlink($lastTimestamp);}
   $time=time();
   $Newimgpath=$imgpath;
   $code=$_POST["code"];
@@ -62,9 +64,9 @@ if (isset($_POST["Render"])){
     $error="compilation sucessfull!";
   }
   else {$error="compilation failed! Check for errors in code";$Newimgpath="/images/error/error.pdf";}
-  $Newwavpath="/wav/{$user}patternWAV{$time}.wav";
-  exec("mv .$wavpath .$Newwavpath");
-  $oldtime=$time;
+  $Newwavpath = "./wav/{$user}patternWAV{$time}.wav";
+  file_put_contents($timestampFile,$Newwavpath);
+  exec("mv .$wavpath $Newwavpath");
 } 
 ?>
 <!DOCTYPE html>

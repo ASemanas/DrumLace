@@ -55,6 +55,10 @@ class PatternProg(Visitor):
         id.ID = ID
         patternlist[ID]= [id]
 
+    def identity(self,tree):
+        target=tree.children[0]
+        patternlist[ID]=patternlist[target].copy()
+
     def drum_description (self,tree):
         global patterns,ID,index,orig_ID
         index=0

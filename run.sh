@@ -50,5 +50,9 @@ for f in in/*;do
   rm $f > /dev/null 2>&1
 done
 
+for f in html/wav/* ; do > /dev/null 2>&1
+  chmod ugo+rwx $f > /dev/null 2>&1
+done
+
 echo $exit_status
 exit $exit_status

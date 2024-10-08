@@ -23,7 +23,7 @@ source=sys.argv[1]
 with open(source) as f:
     prog = f.read() 
 
-#pydot__tree_to_png(test_parser(prog), "out/treetest_r.png",rankdir="TB") o site não funciona com isto
+#pydot__tree_to_png(test_parser(prog), "out/treetest_r.png",rankdir="TB") #o site não funciona com isto
 
 PatternProg().visit_topdown(test_parser(prog))
 

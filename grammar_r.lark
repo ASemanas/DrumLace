@@ -13,11 +13,12 @@ asgs :ID "=" cexp";"? asgs -> pattern_asg
      |cexp "+" pexp -> concatenation2
 ?pexp:alg_exp
     |pexp "||" alg_exp ->parallel2
-?alg_exp:ID
+?alg_exp:ID "(" func_arg (","func_arg)*")" -> func
        |drum_pattern
-       |ID "(" func_arg (","func_arg)*")" -> func
        |"("cexp")"
        |alg_exp "*" INT -> looping
+       |ID
+       |ID ";"->identity
 
 ?func_arg:cexp
         |INT
