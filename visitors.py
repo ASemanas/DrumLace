@@ -48,16 +48,21 @@ patternlist={}
 exportlist=[]
 
 class PatternProg(Visitor):
+    def identity(self,tree):
+        global patterns,ID
+        id=pattern()
+        ID=str(tree.children[0])
+        id.ID = ID
+        patternlist[ID]= [id]
+        target=tree.children[1]
+        patternlist[ID]=patternlist[target].copy()
+
     def pattern_asg(self,tree):
         global patterns,ID
         id=pattern()
         ID=str(tree.children[0])
         id.ID = ID
         patternlist[ID]= [id]
-
-    def identity(self,tree):
-        target=tree.children[0]
-        patternlist[ID]=patternlist[target].copy()
 
     def drum_description (self,tree):
         global patterns,ID,index,orig_ID
