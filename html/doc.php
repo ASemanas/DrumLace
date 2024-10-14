@@ -200,25 +200,28 @@
   export(res)<br>
   <br>
   <h4>Example 2</h4>
-  pat={4/4;Tempo=190;<br>
-hh 1/4 |XXX.XXX.X.X.|;<br>
-bd 1/2 |XXXXXX|;<br>
-sn 1/8 |..XX..X...XX..X...XX..X.XXX.X...|;<br>
-cymc 1/1 |...|1/8|..X....|1/8|X|;}#crash cymbal<br><br>
-
-amen={4/4;Tempo=120;<br>
-hh 1/8 |XXXXXXXX|;<br>
-bd 1/8 |XX...X|;<br>
-sn 1/8 |..X|1/16|.X.X..X..X|;}<br><br>
-
-  bfunk={4/4;Tempo=120;<br>
-  bd 1/8 |d...|1/16 |.| 1/8|X.X|;<br>
+  funkintro={4/4;Tempo=110;<br>
+  bd 1/8 |d...|1/16 |.| 1/8|X..|;<br>
   sn 1/16 |...| 1/8 |dX..X|;<br>
-  cymc 1/1 |.X|;}<br><br>
+  cymc 1/1 |X|;}<br><br>
+  
+funk={4/4;Tempo=110;<br>
+  bd 1/8 |d...|1/16 |.| 1/8 |X..|;<br>
+  sn 1/16 |...| 1/8 |dX..X|;}<br><br>
+  
+funkr=funkintro+funk*3<br><br>
+  
+plates={4/4;Tempo=110;<br>
+  hh 1/8 |XXXXXXXX|;}<br><br>
 
-  res=pat+amen*3+bfunk<br><br>
-
-  export(res)<br>
+platesa={4/4;Tempo=110; #note that patterns cannot have numbers in their name<br>
+  hh 1/8 |XX|1/16|XXXX|1/8|XXXX|;}<br><br>
+  
+cym={4/4;Tempo=110;cymc 1/1 |X|;}<br><br>
+  
+res=funkr||(plates+platesa)*2 + cym<br><br>
+  
+export(res)<br>
 <br>
 <br>
   </div>
