@@ -27,6 +27,7 @@
     In a drum music sheet the vertical position of a note relates to the instrument of that note, wether it is a hi hat, a snare drum or a bass drum.<br>
     Altough there are many standards the one we will consider is the Weinberg notation, indicated bellow.<br><br>
     <img src="/images/documentation/drum_notation.png" width="15%"></img><br><br>
+    Notice that not all these instruments are presented in the DrumLace language only the ones described in  the table bellow (right above examples)<br><br>
     And the duration is signalled by the figure itself as presented in the image bellow.<br><br>
     <img src="/images/documentation/note-lengths-diagram.jpg" width="25%"><br><br>
     A dotted note marks one and a half of the normal duration, for example a dotted quarter note marks 3 eighth notes.

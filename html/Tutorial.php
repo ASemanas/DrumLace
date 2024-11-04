@@ -73,6 +73,8 @@
     Inverse = rev(Pattern)<br><br>
 
     Result = Pattern + Inverse<br><br>
+
+    export(Result)<br><br>
     And you simply press Render.<br>
     If the sound player doesn't change try refreshing the page a couple times. </p>
   </section>
