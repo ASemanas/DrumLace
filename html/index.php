@@ -86,7 +86,7 @@ if (isset($_POST["Render"])){
         <a href="./Feedback.php"target="_blank">Feedback</a>
       </div>
     </nav>
-  <center><h1>DrumLace<br><br> <img src="/images/logo/DrumLaceLogo.png" height="60"></img></h1><h6>alpha version</h6></center>
+  <center><h1>DrumLace: A Language for Programing Drum Rhythms<br><br> <img src="/images/logo/DrumLaceLogo.png" height="60"></img></h1><h6>alpha version</h6></center>
   <div class="row">
     <div class="column">
       <form action="index.php" method="post">
