@@ -22,7 +22,8 @@ $imgpath="/images/{$user}patternPDF.pdf";
 $wavpath="/wav/{$user}patternWAV.wav";
 $midipath="/midi/{$user}patternMIDI.midi";
 $error="welcome to DrumLace! Press render to see the Output.";
-$code = "funkintro={4/4;Tempo=110;
+$code = "#This is a comment it will be ignored
+  funkintro={4/4;Tempo=110;
   bd 1/8 |d...|1/16 |.| 1/8|X..|;
   sn 1/16 |...| 1/8 |dX..X|;
   cymc 1/1 |X|;}
@@ -61,7 +62,7 @@ if (isset($_POST["Render"])){
   fclose ($fp);
   $return = exec("cd ..;./run.sh {$file_path} {$user_dir} {$time}");
   if ($return=="0"){
-    $error="compilation sucessfull!";
+    $error="compilation sucessful!";
   }
   else {$error="compilation failed! Check for errors in code";$Newimgpath="/images/error/error.pdf";}
   $Newwavpath = "./wav/{$user}patternWAV{$time}.wav";
