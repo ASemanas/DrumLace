@@ -59,7 +59,7 @@ COPY . /var/www
 
 RUN pip3.10 install --no-cache-dir -r /var/www/dependencies.txt
 
-# Expose port 80
+# Expose port 80 comment change
 EXPOSE 80
 
 # Start the Apache server
